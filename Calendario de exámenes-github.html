@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendario de exámenes · 2º DAM</title>
+
+<!-- Etiquetas OpenGraph para vista previa en Discord -->
+<meta property="og:title" content="📅 Calendario de exámenes · 2º DAM">
+<meta property="og:description" content="Consulta las próximas fechas de exámenes y entregas de IPE II, SGE, DI, AD, PSP, OP y MO.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#2f6fed">
+
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--tx:#1f2328;--mut:#6b7078;--bd:#e3e1da;--ipe:#2f6fed;--sge:#16a085;--di:#d9822b;--today:#ffe9a8;--box-sizing:border-box;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181c;--card:#20242a;--tx:#eceef1;--mut:#9aa1ab;--bd:#323840;--ipe:#6f9cff;--sge:#4fd1b5;--di:#f0a45a;--today:#5a4a14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#16181c;--card:#20242a;--tx:#eceef1;--mut:#9aa1ab;--bd:#323840;--ipe:#6f9cff;--sge:#4fd1b5;--di:#f0a45a;--today:#5a4a14;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:860px){main{grid-template-columns:1.5fr 1fr}}
+h1{font-size:20px;margin:0 0 4px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
+.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.head h2{font-size:17px;margin:0;text-transform:capitalize}
+button{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;cursor:pointer}
+button.p{background:var(--ipe);color:#fff;border-color:transparent}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow{font-size:12px;color:var(--mut);text-align:center;padding:2px 0}
+.day{min-height:62px;border:1px solid var(--bd);border-radius:8px;padding:3px;font-size:12px;overflow:hidden}
+.day.off{opacity:.35}
+.day.today{background:var(--today)}
+.day b{font-weight:600}
+.chip{display:block;margin-top:2px;padding:1px 4px;border-radius:4px;color:#fff;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-IPE{background:var(--ipe)}.s-SGE{background:var(--sge)}.s-DI{background:var(--di)}.s-Otra{background:#8a63d2}
+.s-AD{background:#c0392b}.s-PSP{background:#b83280}.s-OP{background:#5b6b7c}.s-MO{background:#0e7490}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--mut)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+li{display:flex;gap:10px;align-items:center;border:1px solid var(--bd);border-radius:10px;padding:8px 10px}
+li.past{opacity:.5}
+.bar{width:5px;align-self:stretch;border-radius:3px}
+.bar.s-IPE{background:var(--ipe)}.bar.s-SGE{background:var(--sge)}.bar.s-DI{background:var(--di)}.bar.s-Otra{background:#8a63d2}.bar.s-AD{background:#c0392b}.bar.s-PSP{background:#b83280}.bar.s-OP{background:#5b6b7c}.bar.s-MO{background:#0e7490}
+li .t{flex:1;min-width:0}
+li .t div:first-child{font-weight:600}
+li .m{font-size:12px;color:var(--mut)}
+.cd{font-size:12px;font-weight:600;white-space:nowrap}
+.x{padding:2px 7px}
+form{display:grid;gap:8px;margin-top:12px}
+input,select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:7px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.foot{display:flex;gap:8px;justify-content:space-between;margin-top:12px;font-size:12px;color:var(--mut)}
+</style>
+</head>
+<body>
+<main>
+<section class="card">
+  <h1>Calendario de exámenes</h1>
+  <div class="head">
+    <button id="prev" aria-label="Mes anterior">←</button>
+    <h2 id="title"></h2>
+    <button id="next" aria-label="Mes siguiente">→</button>
+  </div>
+  <div class="grid" id="cal"></div>
+  <div class="legend">
+    <span><i class="s-IPE"></i>IPE II</span>
+    <span><i class="s-SGE"></i>Sist. gestión empresarial</span>
+    <span><i class="s-DI"></i>Desarrollo de Interfaces</span>
+    <span><i class="s-AD"></i>Acceso a Datos</span>
+    <span><i class="s-PSP"></i>Prog. servicios y procesos</span>
+    <span><i class="s-OP"></i>Optativa</span>
+    <span><i class="s-MO"></i>Prog. multimedia y móviles</span>
+    <span><i class="s-Otra"></i>Otra</span>
+  </div>
+</section>
+<section class="card">
+  <div class="head"><h2>Próximas fechas</h2><button id="today">Hoy</button></div>
+  <ul id="list"></ul>
+  <form id="f">
+    <b>Añadir fecha (guardado en tu navegador)</b>
+    <input id="n" placeholder="Ej.: Examen Unidad 4" required>
+    <div class="row">
+      <select id="s"><option value="IPE">IPE II</option><option value="SGE">Sist. gestión empresarial</option><option value="DI">Desarrollo de Interfaces</option><option value="AD">Acceso a Datos</option><option value="PSP">Prog. servicios y procesos</option><option value="OP">Optativa</option><option value="MO">Prog. multimedia y móviles</option><option value="Otra">Otra</option></select>
+      <input id="d" type="date" required>
+    </div>
+    <button class="p" type="submit">Añadir</button>
+  </form>
+  <div class="foot"><span id="cnt"></span><button id="reset">Restaurar</button></div>
+</section>
+</main>
+<script>
+var NAMES={IPE:"IPE II",SGE:"Sist. gestión empresarial",DI:"Desarrollo de Interfaces",AD:"Acceso a Datos",PSP:"Prog. servicios y procesos",OP:"Optativa",MO:"Prog. multimedia y móviles",Otra:"Otra"};
+var SHORT={IPE:"IPE",SGE:"SGE",DI:"DI",AD:"AD",PSP:"PSP",OP:"OP",MO:"MO",Otra:"Otra"};
+var DEFAULTS=[
+{n:"Examen Unidad 1",s:"IPE",d:"2026-10-09"},
+{n:"Examen Unidad 2",s:"IPE",d:"2026-10-30"},
+{n:"Examen Unidad 3",s:"IPE",d:"2026-11-20"},
+{n:"Examen Unidad 5",s:"IPE",d:"2026-12-04"},
+{n:"Exposición (posiblemente Unidad 4 y 6)",s:"IPE",d:"2026-12-11"},
+{n:"Examen Unidad 1",s:"SGE",d:"2026-10-01"},
+{n:"Examen Unidad 2",s:"SGE",d:"2026-10-29"},
+{n:"Examen Unidad 1",s:"DI",d:"2026-10-08"},
+{n:"Trabajo de evaluación Unidad 2 y vídeo",s:"DI",d:"2026-10-26"},
+{n:"Entrega del vídeo explicativo",s:"DI",d:"2026-11-06"},
+{n:"Examen Unidad 1",s:"PSP",d:"2026-11-06"},
+{n:"Examen Unidad 1",s:"AD",d:"2026-11-10"},
+{n:"Examen trimestral",s:"PSP",d:"2026-11-19"},
+{n:"Examen Unidad 3",s:"MO",d:"2026-11-23"},
+{n:"Examen Unidad 2",s:"AD",d:"2026-11-25"},
+{n:"Examen trimestral",s:"MO",d:"2026-11-30"},
+{n:"Examen Unidad 3",s:"OP",d:"2026-12-02"},
+{n:"Examen Unidad 4",s:"AD",d:"2026-12-02"},
+{n:"Examen Unidad 2",s:"OP",d:"2026-12-04"},
+{n:"Examen trimestral",s:"AD",d:"2026-12-09"},
+{n:"Examen trimestral",s:"OP",d:"2026-12-11"}
+];
+var KEY="calendario-examenes-v2",HASH_KEY="calendario-examenes-hash",ev=[];
+var currentHash=JSON.stringify(DEFAULTS);
+
+function load(){
+  try{
+    var savedHash=localStorage.getItem(HASH_KEY);
+    var r=localStorage.getItem(KEY);
+    if(r && savedHash===currentHash){
+      ev=JSON.parse(r);
+      return;
+    }
+    localStorage.setItem(HASH_KEY,currentHash);
+  }catch(e){}
+  ev=DEFAULTS.slice();
+  save();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(ev));localStorage.setItem(HASH_KEY,currentHash)}catch(e){}}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+var now=new Date(),todayIso=iso(now),view=new Date(now.getFullYear(),now.getMonth(),1);
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function fmt(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"})}
+function diff(s){var p=s.split("-"),a=new Date(+p[0],+p[1]-1,+p[2]),b=new Date(now.getFullYear(),now.getMonth(),now.getDate());return Math.round((a-b)/864e5)}
+function render(){
+  document.getElementById("title").textContent=view.toLocaleDateString("es-ES",{month:"long",year:"numeric"});
+  var h="";["L","M","X","J","V","S","D"].forEach(function(x){h+='<div class="dow">'+x+'</div>'});
+  var first=new Date(view.getFullYear(),view.getMonth(),1),off=(first.getDay()+6)%7,start=new Date(first);start.setDate(1-off);
+  for(var i=0;i<42;i++){
+    var c=new Date(start);c.setDate(start.getDate()+i);var k=iso(c);
+    var cls="day"+(c.getMonth()!==view.getMonth()?" off":"")+(k===todayIso?" today":"");
+    h+='<div class="'+cls+'"><b>'+c.getDate()+'</b>';
+    ev.forEach(function(e){if(e.d===k)h+='<span class="chip s-'+e.s+'" title="'+esc(NAMES[e.s]+": "+e.n)+'">'+esc(SHORT[e.s]+" · "+e.n)+'</span>'});
+    h+='</div>';
+  }
+  document.getElementById("cal").innerHTML=h;
+  var sorted=ev.map(function(e,i){return{e:e,i:i}}).sort(function(a,b){return a.e.d<b.e.d?-1:1});
+  var up=sorted.filter(function(x){return diff(x.e.d)>=0}),past=sorted.filter(function(x){return diff(x.e.d)<0}).reverse().slice(0,3);
+  var l="";
+  up.concat(past).forEach(function(x){
+    var dd=diff(x.e.d),t=dd<0?"pasado":dd===0?"¡Hoy!":dd===1?"mañana":"en "+dd+" días";
+    l+='<li class="'+(dd<0?"past":"")+'"><span class="bar s-'+x.e.s+'"></span><div class="t"><div>'+esc(x.e.n)+'</div><div class="m">'+esc(NAMES[x.e.s])+' · '+fmt(x.e.d)+'</div></div><span class="cd">'+t+'</span><button class="x" data-i="'+x.i+'" aria-label="Eliminar">×</button></li>';
+  });
+  document.getElementById("list").innerHTML=l||"<li>No hay fechas.</li>";
+  document.getElementById("cnt").textContent=up.length+" pendientes";
+}
+document.getElementById("prev").onclick=function(){view.setMonth(view.getMonth()-1);render()};
+document.getElementById("next").onclick=function(){view.setMonth(view.getMonth()+1);render()};
+document.getElementById("today").onclick=function(){view=new Date(now.getFullYear(),now.getMonth(),1);render()};
+document.getElementById("list").onclick=function(e){var i=e.target.getAttribute("data-i");if(i!==null){ev.splice(+i,1);save();render()}};
+document.getElementById("f").onsubmit=function(e){e.preventDefault();
+  var d=document.getElementById("d").value;
+  ev.push({n:document.getElementById("n").value.trim(),s:document.getElementById("s").value,d:d});
+  save();var p=d.split("-");view=new Date(+p[0],+p[1]-1,1);e.target.reset();render()};
+document.getElementById("reset").onclick=function(){ev=DEFAULTS.slice();save();render()};
+load();render();
+</script>
+</body>
+</html>

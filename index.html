@@ -3,14 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Calendario de exámenes · 2º DAM</title>
-
-<!-- Etiquetas OpenGraph para vista previa en Discord -->
-<meta property="og:title" content="📅 Calendario de exámenes · 2º DAM">
-<meta property="og:description" content="Consulta las próximas fechas de exámenes y entregas de IPE II, SGE, DI, AD, PSP, OP y MO.">
-<meta property="og:type" content="website">
-<meta name="theme-color" content="#2f6fed">
-
+<title>Calendario de exámenes</title>
 <style>
 :root{--bg:#f7f6f2;--card:#fff;--tx:#1f2328;--mut:#6b7078;--bd:#e3e1da;--ipe:#2f6fed;--sge:#16a085;--di:#d9822b;--today:#ffe9a8;--box-sizing:border-box;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181c;--card:#20242a;--tx:#eceef1;--mut:#9aa1ab;--bd:#323840;--ipe:#6f9cff;--sge:#4fd1b5;--di:#f0a45a;--today:#5a4a14;color-scheme:dark}}
@@ -78,7 +71,7 @@ input,select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid 
   <div class="head"><h2>Próximas fechas</h2><button id="today">Hoy</button></div>
   <ul id="list"></ul>
   <form id="f">
-    <b>Añadir fecha (guardado en tu navegador)</b>
+    <b>Añadir fecha</b>
     <input id="n" placeholder="Ej.: Examen Unidad 4" required>
     <div class="row">
       <select id="s"><option value="IPE">IPE II</option><option value="SGE">Sist. gestión empresarial</option><option value="DI">Desarrollo de Interfaces</option><option value="AD">Acceso a Datos</option><option value="PSP">Prog. servicios y procesos</option><option value="OP">Optativa</option><option value="MO">Prog. multimedia y móviles</option><option value="Otra">Otra</option></select>
@@ -115,23 +108,9 @@ var DEFAULTS=[
 {n:"Examen trimestral",s:"AD",d:"2026-12-09"},
 {n:"Examen trimestral",s:"OP",d:"2026-12-11"}
 ];
-var KEY="calendario-examenes-v2",HASH_KEY="calendario-examenes-hash",ev=[];
-var currentHash=JSON.stringify(DEFAULTS);
-
-function load(){
-  try{
-    var savedHash=localStorage.getItem(HASH_KEY);
-    var r=localStorage.getItem(KEY);
-    if(r && savedHash===currentHash){
-      ev=JSON.parse(r);
-      return;
-    }
-    localStorage.setItem(HASH_KEY,currentHash);
-  }catch(e){}
-  ev=DEFAULTS.slice();
-  save();
-}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(ev));localStorage.setItem(HASH_KEY,currentHash)}catch(e){}}
+var KEY="calendario-examenes-v2",ev=[];
+function load(){try{var r=localStorage.getItem(KEY);if(r){ev=JSON.parse(r);return}}catch(e){}ev=DEFAULTS.slice()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(ev))}catch(e){}}
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 var now=new Date(),todayIso=iso(now),view=new Date(now.getFullYear(),now.getMonth(),1);
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -172,3 +151,4 @@ load();render();
 </script>
 </body>
 </html>
+

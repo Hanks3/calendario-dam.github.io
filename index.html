@@ -46,6 +46,7 @@ li .t div:first-child{font-weight:600}
 li .m{font-size:12px;color:var(--mut)}
 .cd{font-size:12px;font-weight:600;white-space:nowrap}
 .x{padding:2px 7px}
+[hidden]{display:none!important}
 form{display:grid;gap:8px;margin-top:12px}
 input,select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:7px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -77,7 +78,7 @@ input,select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid 
   <div class="head"><h2>Próximas fechas</h2><button id="today">Hoy</button></div>
   <ul id="list"></ul>
   <form id="f">
-    <b>Añadir fecha (guardado en tu navegador)</b>
+    <b id="ft">Añadir fecha (la verán todos)</b>
     <input id="n" placeholder="Ej.: Examen Unidad 4" required>
     <div class="row">
       <select id="s">
@@ -92,37 +93,58 @@ input,select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid 
       </select>
       <input id="d" type="date" required>
     </div>
-    <button class="p" type="submit">Añadir</button>
+    <button class="p" type="submit" id="ok">Añadir</button>
+    <button type="button" id="cancel" hidden>Cancelar edición</button>
   </form>
-  <div class="foot"><span id="cnt"></span><button id="reset">Borrar mis fechas</button></div>
+  <div class="foot"><span id="cnt"></span><button id="reset">Actualizar</button></div>
 </section>
 </main>
 <script>
+// 1) Pega aquí la URL de tu Firebase Realtime Database (sin barra final)
+var DB="https://calendario-segundo-dam-default-rtdb.europe-west1.firebasedatabase.app";
+
 var NAMES={IPE:"IPE II",SGE:"Sist. gestión empresarial",DI:"Desarrollo de Interfaces",AD:"Acceso a Datos",PSP:"Prog. servicios y procesos",OP:"Optativa",MO:"Prog. multimedia y móviles",Otra:"Otra"};
 var SHORT={IPE:"IPE",SGE:"SGE",DI:"DI",AD:"AD",PSP:"PSP",OP:"OP",MO:"MO",Otra:"Otra"};
-var KEY="calendario-mis-fechas-v1",shared=[],mine=[],err=false;
+var CONF=DB.indexOf("TU-PROYECTO")<0, shared=[], editing=null, err=false;
 
-function loadMine(){try{var r=localStorage.getItem(KEY);if(r)mine=JSON.parse(r)}catch(e){}}
-function saveMine(){try{localStorage.setItem(KEY,JSON.stringify(mine))}catch(e){}}
+function norm(data){
+  var out=[];if(!data)return out;
+  for(var k in data){var e=data[k];if(e&&e.n&&e.s&&e.d)out.push({id:k,n:e.n,s:e.s,d:e.d})}
+  return out;
+}
+function seed(){
+  return fetch("exams.json").then(function(r){return r.json()}).then(function(arr){
+    if(!CONF){shared=norm(arr);return}
+    return fetch(DB+"/exams.json",{method:"PUT",body:JSON.stringify(arr)})
+      .then(function(){return fetch(DB+"/exams.json")}).then(function(r){return r.json()})
+      .then(function(d){shared=norm(d)});
+  });
+}
 function loadShared(){
-  return fetch("exams.json?t="+Date.now())
-    .then(function(r){if(!r.ok)throw 0;return r.json()})
-    .then(function(j){shared=j})
+  if(!CONF){return seed().catch(function(){err=true})}
+  return fetch(DB+"/exams.json").then(function(r){if(!r.ok)throw 0;return r.json()})
+    .then(function(d){err=false;if(d===null)return seed();shared=norm(d)})
     .catch(function(){err=true});
 }
-function all(){
-  return shared.map(function(e){return{n:e.n,s:e.s,d:e.d,own:false}})
-    .concat(mine.map(function(e,i){return{n:e.n,s:e.s,d:e.d,own:true,i:i}}));
+function api(method,id,body){
+  if(!CONF){alert("Falta configurar la URL de Firebase en index.html");return Promise.resolve()}
+  var url=DB+"/exams"+(id?"/"+id:"")+".json";
+  return fetch(url,{method:method,body:body?JSON.stringify(body):undefined})
+    .then(function(r){if(!r.ok)throw 0})
+    .catch(function(){alert("No se pudo guardar. Inténtalo de nuevo.")})
+    .then(loadShared).then(render);
 }
+
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 var now=new Date(),todayIso=iso(now),view=new Date(now.getFullYear(),now.getMonth(),1);
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function fmt(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"})}
 function diff(s){var p=s.split("-"),a=new Date(+p[0],+p[1]-1,+p[2]),b=new Date(now.getFullYear(),now.getMonth(),now.getDate());return Math.round((a-b)/864e5)}
+function $(i){return document.getElementById(i)}
 
 function render(){
-  var ev=all();
-  document.getElementById("title").textContent=view.toLocaleDateString("es-ES",{month:"long",year:"numeric"});
+  var ev=shared;
+  $("title").textContent=view.toLocaleDateString("es-ES",{month:"long",year:"numeric"});
   var h="";["L","M","X","J","V","S","D"].forEach(function(x){h+='<div class="dow">'+x+'</div>'});
   var first=new Date(view.getFullYear(),view.getMonth(),1),off=(first.getDay()+6)%7,start=new Date(first);start.setDate(1-off);
   for(var i=0;i<42;i++){
@@ -132,7 +154,7 @@ function render(){
     ev.forEach(function(e){if(e.d===k)h+='<span class="chip s-'+e.s+'" title="'+esc(NAMES[e.s]+": "+e.n)+'">'+esc(SHORT[e.s]+" · "+e.n)+'</span>'});
     h+='</div>';
   }
-  document.getElementById("cal").innerHTML=h;
+  $("cal").innerHTML=h;
 
   var sorted=ev.slice().sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0});
   var up=sorted.filter(function(e){return diff(e.d)>=0});
@@ -140,32 +162,45 @@ function render(){
   var l="";
   up.concat(past).forEach(function(e){
     var dd=diff(e.d),t=dd<0?"pasado":dd===0?"¡Hoy!":dd===1?"mañana":"en "+dd+" días";
-    l+='<li class="'+(dd<0?"past":"")+'"><span class="bar s-'+e.s+'"></span><div class="t"><div>'+esc(e.n)+'</div><div class="m">'+esc(NAMES[e.s])+' · '+fmt(e.d)+(e.own?' · mía':'')+'</div></div><span class="cd">'+t+'</span>'+(e.own?'<button class="x" data-i="'+e.i+'" aria-label="Eliminar">×</button>':'')+'</li>';
+    l+='<li class="'+(dd<0?"past":"")+'"><span class="bar s-'+e.s+'"></span><div class="t"><div>'+esc(e.n)+'</div><div class="m">'+esc(NAMES[e.s])+' · '+fmt(e.d)+'</div></div><span class="cd">'+t+'</span>'
+      +'<button class="x" data-a="edit" data-id="'+esc(e.id)+'" aria-label="Editar">✎</button>'
+      +'<button class="x" data-a="del" data-id="'+esc(e.id)+'" aria-label="Eliminar">×</button></li>';
   });
-  document.getElementById("list").innerHTML=l||"<li>No hay fechas.</li>";
-  document.getElementById("cnt").textContent=up.length+" pendientes"+(err?" · no se pudo cargar exams.json":"");
+  $("list").innerHTML=l||"<li>No hay fechas.</li>";
+  $("cnt").textContent=up.length+" pendientes"+(err?" · sin conexión con la base de datos":"")+(CONF?"":" · modo solo lectura");
 }
 
-document.getElementById("prev").onclick=function(){view.setMonth(view.getMonth()-1);render()};
-document.getElementById("next").onclick=function(){view.setMonth(view.getMonth()+1);render()};
-document.getElementById("today").onclick=function(){view=new Date(now.getFullYear(),now.getMonth(),1);render()};
-document.getElementById("list").onclick=function(e){
-  var i=e.target.getAttribute("data-i");
-  if(i!==null){mine.splice(+i,1);saveMine();render()}
-};
-document.getElementById("f").onsubmit=function(e){
-  e.preventDefault();
-  var d=document.getElementById("d").value;
-  mine.push({n:document.getElementById("n").value.trim(),s:document.getElementById("s").value,d:d});
-  saveMine();
-  var p=d.split("-");view=new Date(+p[0],+p[1]-1,1);
-  e.target.reset();render();
-};
-document.getElementById("reset").onclick=function(){mine=[];saveMine();render()};
+function stopEdit(){editing=null;$("f").reset();$("ok").textContent="Añadir";$("ft").textContent="Añadir fecha (la verán todos)";$("cancel").hidden=true}
 
-loadMine();
+$("prev").onclick=function(){view.setMonth(view.getMonth()-1);render()};
+$("next").onclick=function(){view.setMonth(view.getMonth()+1);render()};
+$("today").onclick=function(){view=new Date(now.getFullYear(),now.getMonth(),1);render()};
+$("reset").onclick=function(){loadShared().then(render)};
+$("cancel").onclick=stopEdit;
+$("list").onclick=function(e){
+  var a=e.target.getAttribute("data-a"),id=e.target.getAttribute("data-id");
+  if(!a)return;
+  if(a==="del"){if(confirm("¿Borrar esta fecha para todos los compañeros?"))api("DELETE",id)}
+  if(a==="edit"){
+    var x=shared.filter(function(s){return s.id===id})[0];if(!x)return;
+    editing=id;$("n").value=x.n;$("s").value=x.s;$("d").value=x.d;
+    $("ok").textContent="Guardar cambios";$("ft").textContent="Editar fecha (el cambio lo verán todos)";$("cancel").hidden=false;
+    $("n").focus();
+  }
+};
+$("f").onsubmit=function(e){
+  e.preventDefault();
+  var ev={n:$("n").value.trim(),s:$("s").value,d:$("d").value};
+  var p=ev.d.split("-");view=new Date(+p[0],+p[1]-1,1);
+  var id=editing;stopEdit();
+  if(id)api("PUT",id,ev);else api("POST",null,ev);
+};
+
 render();
 loadShared().then(render);
+setInterval(function(){loadShared().then(render)},60000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)loadShared().then(render)});
 </script>
 </body>
 </html>
+

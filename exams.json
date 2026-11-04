@@ -1,0 +1,23 @@
+[
+  {"n":"Examen Unidad 1","s":"IPE","d":"2026-10-09"},
+  {"n":"Examen Unidad 2","s":"IPE","d":"2026-10-30"},
+  {"n":"Examen Unidad 3","s":"IPE","d":"2026-11-20"},
+  {"n":"Examen Unidad 5","s":"IPE","d":"2026-12-04"},
+  {"n":"Exposición (posiblemente Unidad 4 y 6)","s":"IPE","d":"2026-12-11"},
+  {"n":"Examen Unidad 1","s":"SGE","d":"2026-10-01"},
+  {"n":"Examen Unidad 2","s":"SGE","d":"2026-10-29"},
+  {"n":"Examen Unidad 1","s":"DI","d":"2026-10-08"},
+  {"n":"Trabajo de evaluación Unidad 2 y vídeo","s":"DI","d":"2026-10-26"},
+  {"n":"Entrega del vídeo explicativo","s":"DI","d":"2026-11-06"},
+  {"n":"Examen Unidad 1","s":"PSP","d":"2026-11-09"},
+  {"n":"Examen Unidad 1","s":"AD","d":"2026-11-17"},
+  {"n":"Examen trimestral","s":"PSP","d":"2026-11-19"},
+  {"n":"Examen Unidad 3","s":"MO","d":"2026-11-23"},
+  {"n":"Examen Unidad 2","s":"AD","d":"2026-11-25"},
+  {"n":"Examen trimestral","s":"MO","d":"2026-11-30"},
+  {"n":"Examen Unidad 3","s":"OP","d":"2026-12-02"},
+  {"n":"Examen Unidad 4","s":"AD","d":"2026-12-02"},
+  {"n":"Examen Unidad 2","s":"OP","d":"2026-12-04"},
+  {"n":"Examen trimestral","s":"AD","d":"2026-12-09"},
+  {"n":"Examen trimestral","s":"OP","d":"2026-12-11"}
+]
